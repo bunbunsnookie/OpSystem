@@ -1,2 +1,2 @@
-git fetch --all
+git pull --all
 cmake --build ./build
