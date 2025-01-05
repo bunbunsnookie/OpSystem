@@ -36,9 +36,9 @@ int runs_in_background(const char *path){
 
         pid_t pid;
         char *const argv[] = {NULL};
-        code = posix_spawnp(
+        auto code = posix_spawnp(
             &pid,
-            program_path,
+            path,
             NULL,
             NULL,
             argv,
