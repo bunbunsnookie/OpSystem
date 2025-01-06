@@ -1,78 +1,88 @@
 #include "background_mode.hpp"
-#include <iostream>
 
-#ifdef _WIN32
-    #include <windows.h>
-    #include <string>
-#else
-    #include <spawn.h>
-    #include <wait.h>
-    #include <string.h>
-#endif
-
-int runs_in_background(const char *path){
+int runs_in_background(const char *path, bool wait_completion, long unsigned int *response_code){
 
     #ifdef _WIN32
 
-        STARTUPINFO si{};
+        // Создание нового процесса
+
+        STARTUPINFO si{}; 
         PROCESS_INFORMATION pi;
 
-        CreateProcess(
-            path,       // Module name
-            NULL,       // Command line
-            NULL ,      // Process handle not inheritable
-            NULL,       // Thread handle not inheritable
-            FALSE,      // Set handle inheritance to FALSE
-            0,          // No creation flags
-            NULL,       // Use parent's environment block
-            NULL,       // Use parent's starting directory 
-            &si,        // Pointer to STARTUPINFO structure
-            &pi         // Pointer to PROCESS_INFORMATION structure
-        );
+        if (!CreateProcess(
+            path,       
+            NULL,       
+            NULL, 
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            NULL,
+            &si,
+            &pi
+        ))
+        {
+            auto status_process = GetLastError();
+            std::cout << "Error CreateProcess!" << std::endl;
+            return status_process;
+        }
 
-        return pi.dwProcessId;
+        auto pid = pi.dwProcessId; // Получаем идентификатор созданного процесса
+
+        // Ожидание завершения процесса
+        if (wait_completion){
+
+            HANDLE handle = OpenProcess(
+                PROCESS_ALL_ACCESS, 
+                FALSE, 
+                pid
+            );
+
+            auto status_process = WaitForSingleObject(
+                handle,
+                INFINITE
+            );
+            // Получаем код завершения процесса
+            GetExitCodeProcess(handle, (unsigned long*)response_code);
+            CloseHandle(handle);
+
+            return status_process;    
+        } else {
+            return 0;
+        }
 
     #else
 
         pid_t pid;
         char *const argv[] = {NULL};
-        auto code = posix_spawnp(
+
+        // Создание нового процесса
+        auto status_process = posix_spawnp(
             &pid,
             path,
             NULL,
             NULL,
             argv,
-            NULL);
+            NULL
+        );
 
-        return pid;
+        // Ожидание завершения процесса
+        if (wait_completion){
+
+            waitpid(
+                pid, 
+                &status_process, 
+                0
+            );
+
+            // Получаем код завершения процесса
+            *response_code = WEXITSTATUS(status_process);
+            return WTERMSIG(status_process);
+  
+        } else {
+            return 0;
+        }
+
 
     #endif
-}
-
-int wait_program(const int pid){
-
-    #ifdef _WIN32
-
-        HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-        int code = WaitForSingleObject(handle, INFINITE);
-        CloseHandle(handle);
-        return code;
-
-    #else
-
-        int code;
-        waitpid(pid, &code, 0);
-        return code;
-
-    #endif
-}
-
-std::pair<int,int> wait_program_with_options(const char *path, bool wait){
-
-    auto pid = runs_in_background(path);
-
-    if (wait){ return std::pair<int,int>(pid,wait_program(pid)); }
-
-    return std::pair<int,int>(pid,0);
-
 }

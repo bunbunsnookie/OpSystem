@@ -4,22 +4,23 @@
 int main(int argc, char **argv){
 
     #ifdef _WIN32
-        const char *path = "..\\wait.exe";
+        const char *path = "..\\program.exe";
     #else
-        const char *path = "../wait";
+        const char *path = "../program";
     #endif
 
-    bool wait = true;
+    bool wait_for_completion = true;
     if (argc > 1){
         if (std::string(argv[1]) == "true"){
-            wait = true;
+            wait_for_completion = true;
         } 
         if (std::string(argv[1]) == "false"){
-            wait = false;
+            wait_for_completion = false;
         }   
     }
-
-    auto [pid, code] = wait_program_with_options(path, wait);
-    std::cout << "Process id " << pid << " Code status " << code << "\n";
+    
+    unsigned long int response_code;
+    auto status_process = runs_in_background(path, wait_for_completion, &response_code);
+    std::cout << "Status process " << status_process << " Response code " << response_code << "\n";
 
 }
