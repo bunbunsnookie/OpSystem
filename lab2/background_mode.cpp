@@ -74,14 +74,12 @@ int runs_in_background(const char *path, bool wait_completion, long unsigned int
                 &status_process, 
                 0
             );
-
-            // Получаем код завершения процесса
-            *response_code = WEXITSTATUS(status_process);
-            return WTERMSIG(status_process);
   
-        } else {
-            return 0;
-        }
+        } 
+
+        // Получаем код завершения процесса
+        *response_code = WEXITSTATUS(status_process);
+        return WTERMSIG(status_process);
 
 
     #endif
