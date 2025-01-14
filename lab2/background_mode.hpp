@@ -18,6 +18,6 @@
  * @param wait_completion  Boolean. If true, the program is waiting for completion, otherwise not.
  * @param exit_code Pointer to response code.
  * 
- *  @return Response code.
+ *  @return Status process.
  */
 int runs_in_background(const char *path, bool wait_completion, long unsigned int *response_code);
