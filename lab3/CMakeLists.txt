@@ -1,2 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(OpSystem3)
+
+set (CMAKE_CXX_STANDARD 20)
+ADD_EXECUTABLE(main util.hpp shmem.hpp processes.hpp main.cpp)
+ADD_EXECUTABLE(copy1 util.hpp shmem.hpp copy1.cpp)
+ADD_EXECUTABLE(copy2 util.hpp shmem.hpp copy2.cpp)
+IF (NOT WIN32)
+    # В POSIX нужно линковаться к rt для shm_open() и к pthread для sem_open()
+    TARGET_LINK_LIBRARIES(main rt pthread)
+    TARGET_LINK_LIBRARIES(copy1 rt pthread)
+    TARGET_LINK_LIBRARIES(copy2 rt pthread)
+ENDIF (NOT WIN32)
