@@ -33,9 +33,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    Connection connection;
+    QPointer<Connection> connection;
 
-    QChart chart;
+    QPointer<QChart> chart;
     QPointer<QDateTimeAxis> axisX;
     QPointer<QValueAxis> axisY;
 
